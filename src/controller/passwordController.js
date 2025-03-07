@@ -27,24 +27,37 @@ const storePassword = async (req, res) => {
     }
 };
 
-
-const getPassword = async(req,res) => {
-    try{
+const getDecryptedPassword = async (req, res) => {
+    console.log("api hit: getEncryptedPassword"); 
+    try {
         const userId = req.user.userId;
-        const {serviceId} = req.params;
+        const { serviceId } = req.params;
 
-        const PasswordEntry = await Password.findOne({userId,serviceId});
 
-        if(!PasswordEntry){
-            return res.status(404).json({error: "service not found"})
-        }else{
-            res.status(200).json(PasswordEntry);
+        const passwordEntry = await Password.findOne({ userId, serviceId });
+
+        if (!passwordEntry) {
+            console.log("No password entry found");
+            return res.status(404).json({ error: "Service not found" });
         }
-    }catch(err){
-        console.error('error fetching password: ',err)
-        res.status(500).json({err:"server error"})
+
+
+        const decryptedBytes = CryptoJS.AES.decrypt(passwordEntry.encryptedPassword, SECRET_KEY);
+        const decryptedPassword = decryptedBytes.toString(CryptoJS.enc.Utf8);
+
+
+        
+        if (!decryptedPassword) {
+            console.log("decryption failed");
+            return res.status(500).json({ error: "Error decrypting password" });
+        }
+
+        res.status(200).json({ serviceName: passwordEntry.serviceName, decryptedPassword });
+    } catch (err) {
+        console.error("Error fetching password: ", err);
+        res.status(500).json({ error: "Server error" });
     }
-}
+};
 
 const getAllPassword = async (req,res) => {
     try{
@@ -104,4 +117,4 @@ const deletePassword = async(req,res) => {
 
 
 
-module.exports ={storePassword,getPassword,getAllPassword,updatePassword,deletePassword}
+module.exports ={storePassword,getDecryptedPassword,getAllPassword,updatePassword,deletePassword}
