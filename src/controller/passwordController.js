@@ -5,28 +5,27 @@ const {v4:uuidv4} = require('uuid');
 
 
 const SECRET_KEY = "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
-
-const storePassword = async (req,res) => {
-    try{
-        const {serviceName,password} = req.body;
+const storePassword = async (req, res) => {
+    try {
+        const { serviceName, password } = req.body;
         const userId = req.user.userId;
 
-        if(!serviceName || !password){
-            return res.status(400).json({error: "service name and password are required"});
+        if (!serviceName || !password) {
+            return res.status(400).json({ error: "Service name and password are required" });
         }
-
         const serviceId = uuidv4();
-
-        const encryptedPassword = CryptoJS.AES.encrypt(password,SECRET_KEY).toString();
         
-        const newPassword = new Password({userId,serviceName,serviceId,encryptedPassword})
+        const encryptedPassword = CryptoJS.AES.encrypt(password, SECRET_KEY).toString();
+
+        const newPassword = new Password({ userId, serviceName, serviceId, encryptedPassword });
         await newPassword.save();
 
-        res.status(201).json({message: "password stored successfully for: ",serviceId})
-    }catch(err){
-        res.status(500).json({err:"error occured"});
+        res.status(201).json({ message: "Password stored successfully", serviceId });
+    } catch (err) {
+        console.error("Error storing password:", err);
+        res.status(500).json({ error: "Error occurred while storing password" });
     }
-}
+};
 
 
 const getPassword = async(req,res) => {
