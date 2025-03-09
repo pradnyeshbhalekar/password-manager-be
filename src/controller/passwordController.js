@@ -5,6 +5,8 @@ const {v4:uuidv4} = require('uuid');
 
 
 const SECRET_KEY = "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
+
+
 const storePassword = async (req, res) => {
     try {
         const { serviceName, password } = req.body;
@@ -13,7 +15,8 @@ const storePassword = async (req, res) => {
         if (!serviceName || !password) {
             return res.status(400).json({ error: "Service name and password are required" });
         }
-        const serviceId = uuidv4();
+
+        const serviceId = uuidv4(); 
         
         const encryptedPassword = CryptoJS.AES.encrypt(password, SECRET_KEY).toString();
 
@@ -28,11 +31,10 @@ const storePassword = async (req, res) => {
 };
 
 const getDecryptedPassword = async (req, res) => {
-    console.log("api hit: getEncryptedPassword"); 
+    console.log("api hit: getDecryptedPassword"); 
     try {
         const userId = req.user.userId;
         const { serviceId } = req.params;
-
 
         const passwordEntry = await Password.findOne({ userId, serviceId });
 
@@ -41,18 +43,20 @@ const getDecryptedPassword = async (req, res) => {
             return res.status(404).json({ error: "Service not found" });
         }
 
-
         const decryptedBytes = CryptoJS.AES.decrypt(passwordEntry.encryptedPassword, SECRET_KEY);
         const decryptedPassword = decryptedBytes.toString(CryptoJS.enc.Utf8);
 
-
-        
         if (!decryptedPassword) {
-            console.log("decryption failed");
+            console.log("Decryption failed");
             return res.status(500).json({ error: "Error decrypting password" });
         }
 
-        res.status(200).json({ serviceName: passwordEntry.serviceName, decryptedPassword });
+
+        res.status(200).json({ 
+            serviceId: passwordEntry.serviceId,  
+            serviceName: passwordEntry.serviceName, 
+            decryptedPassword 
+        });
     } catch (err) {
         console.error("Error fetching password: ", err);
         res.status(500).json({ error: "Server error" });
