@@ -4,7 +4,7 @@ require("dotenv").config()
 const {v4:uuidv4} = require('uuid');
 
 
-const SECRET_KEY = "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
+const SECRET_KEY = process.env.SECRET_KEY
 
 
 const storePassword = async (req, res) => {
@@ -31,7 +31,7 @@ const storePassword = async (req, res) => {
 };
 
 const getDecryptedPassword = async (req, res) => {
-    console.log("api hit: getDecryptedPassword"); 
+
     try {
         const userId = req.user.userId;
         const { serviceId } = req.params;

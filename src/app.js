@@ -7,8 +7,26 @@ const authRoutes = require("../src/routes/auth");
 const passwordRoutes = require('../src/routes/passwordRoute')
 const app = express();
 
+// If deployed behind a proxy (like Render), enable this before session:
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 app.use(express.json());
-app.use(cors());
+
+// Allow only your frontend during dev and enable credentials
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:3000';
+app.use(cors({
+  origin: FRONTEND_ORIGIN,
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+// Ensure preflight responses are handled
+app.options('*', cors({
+  origin: FRONTEND_ORIGIN,
+  credentials: true
+}));
 
 app.use(session({
     secret: process.env.SESSION_SECRET || "your-secret-key", 
@@ -17,6 +35,7 @@ app.use(session({
     cookie: {
       secure: process.env.NODE_ENV === "production", 
       maxAge: 24 * 60 * 60 * 1000, 
+      sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax'
     },
 }));
 
@@ -24,4 +43,4 @@ connectDB();
 app.use("/auth", authRoutes);
 app.use('/api/passwords',passwordRoutes)
 
-module.exports = app;  
+module.exports = app;

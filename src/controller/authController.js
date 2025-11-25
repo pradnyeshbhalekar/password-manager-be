@@ -9,7 +9,7 @@ exports.googleLogin = async (req, res) => {
     const { token } = req.body;
     if (!token) return res.status(400).json({ error: "No token provided" });
 
-    // Verify Google Token
+    
     const ticket = await client.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID,
